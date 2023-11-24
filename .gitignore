@@ -6,6 +6,11 @@ __pycache__/
 # C extensions
 *.so
 
+# Paths
+Movie_Files/
+Tv_show_files/
+Book_Files/
+
 # Distribution / packaging
 .Python
 build/
