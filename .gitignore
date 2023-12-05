@@ -7,9 +7,7 @@ __pycache__/
 *.so
 
 # Paths
-Movie_Files.zip/
-Tv_show_files.zip/
-Book_Files.zip/
+data/
 
 # Distribution / packaging
 .Python
