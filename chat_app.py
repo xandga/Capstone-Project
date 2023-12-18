@@ -9,7 +9,7 @@ import random
 import time
 import streamlit as st
 
-from chat_bot import PizzaChatBot
+from chat_bot import CritiBot
 from util import local_settings
 from prompt_list import prompts
 
@@ -29,10 +29,10 @@ def initialize() -> None:
             value=prompts[0]["prompt"]
         )
 
-    st.sidebar.title("🤖 🍕")
+    st.sidebar.title("🤖 🎞️")
 
     if "chatbot" not in st.session_state:
-        st.session_state.chatbot = PizzaChatBot(st.session_state.system_behavior)
+        st.session_state.chatbot = CritiBot(st.session_state.system_behavior)
 
     with st.sidebar:
         st.markdown(
@@ -59,7 +59,7 @@ def display_user_msg(message: str):
     """
     Display user message in chat message container
     """
-    with st.chat_message("user", avatar="😎"):
+    with st.chat_message("user", avatar="🧠"):
         st.markdown(message)
 
 

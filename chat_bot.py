@@ -48,10 +48,10 @@ class GPT_Helper:
         return completion.choices[0].message.content
 
 # [i]                                                                                            #
-# [i] PizzaChatBot                                                                               #
+# [i] CritiBot                                                                               #
 # [i]                                                                                            #
 
-class PizzaChatBot:
+class CritiBot:
     """
     Generate a response by using LLMs.
     """
