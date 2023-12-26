@@ -8,9 +8,12 @@ __pycache__/
 
 # Paths
 data/
+Data/
 Book_Files/
 Movie_Files/
 Tv_show_files/
+
+credentials.json
 
 # Distribution / packaging
 .Python
