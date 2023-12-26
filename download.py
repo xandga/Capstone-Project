@@ -6,7 +6,19 @@ import os
 from drive import service
 
 # Path where you want to save the downloaded files
-download_folder = 'C:/Users/huawei/Documents/GitHub/Capstone-Project/Data'
+import os
+
+# Specify the path for the new folder
+new_folder_path = 'Data'
+
+# Check if the folder doesn't exist, then create it
+if not os.path.exists(new_folder_path):
+    os.makedirs(new_folder_path)
+    print(f"Folder '{new_folder_path}' created successfully.")
+else:
+    print(f"Folder '{new_folder_path}' already exists.")
+
+download_folder = 'Data'
 
 '''def authenticate_google_drive():
     # Load credentials from a previously saved token.json file or use any other authentication flow
