@@ -101,7 +101,7 @@ if __name__ == "__main__":
     # [i] Display History #
     display_history_messages()
 
-    if prompt := st.chat_input("Type your request..."):
+    if prompt := st.chat_input("Type here..."):
 
         # [*] Request & Response #
         display_user_msg(message=prompt)
