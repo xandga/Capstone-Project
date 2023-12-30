@@ -42,3 +42,19 @@ dislikes = "Rain, comedy"
 entertainment_preference = "Movies"
 
 insert_user_profile(username, age, likes, dislikes, entertainment_preference)
+
+
+conn.close()
+
+import os
+
+# Specify the path to your database file
+db_file_path = 'user.db'
+
+# Check if the file exists before attempting to delete it
+if os.path.exists(db_file_path):
+    os.remove(db_file_path)
+    print(f"Database '{db_file_path}' deleted successfully.")
+else:
+    print(f"Database '{db_file_path}' does not exist or already deleted.")
+

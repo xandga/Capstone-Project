@@ -96,50 +96,8 @@ class CritiBot:
             OPENAI_API_KEY=local_settings.OPENAI_API_KEY,
             system_behavior=system_behavior
         )
-
+    '''
         # Add a method in your CritiBot class to extract user details
-
-    def generate_response(self, message: str):
-        response = self.engine.get_completion(message)
-
-        NEW_USER_ON = False
-        OLD_USER_ON = False
-
-        # Check if new or old user
-        if "NEW_USER_ON" in response:
-            NEW_USER_ON = True
-            
-        elif "OLD_USER_ON" in response:
-            OLD_USER_ON = True
-        if NEW_USER_ON:
-            template = """
-        Extract the username, age, likes, dislikes, and preferred entertainment method. 
-        Please adapt the way the user is providing the information.
-
-        TEXT: {response}
-
-        EXAMPLE:
-        - username: Ilona08
-        - age: 25
-        - likes: Movies, Music
-        - dislikes: Spiders, Math
-        - entertainment_preference: Movies
-
-        OUTPUT: a list in the following format (which has to be able to be added to an SQLite database):
-        username TEXT,
-        age INTEGER,
-        likes TEXT,
-        dislikes TEXT,
-        entertainment_preference TEXT
-        """
-            # Assuming the response contains user details in a structured format
-            user_details = self.extract_user_details(response)
-            if user_details:
-                insert_user_profile(*user_details)
-                return "User profile inserted successfully."
-
-        return response
-
     def extract_user_details(self, response):
         user_info = {
             "username": "",
@@ -156,8 +114,100 @@ class CritiBot:
                 end_index = response.find("\n", start_index)
                 user_info[key] = response[start_index:end_index].strip()
 
+        return tuple(user_info.values())'''
+    def extract_user_details(self, response):
+        user_info = {
+            "username": "",
+            "age": "",
+            "likes": "",
+            "dislikes": "",
+            "entertainment_preference": ""
+        }
+
+        try:
+            # Define keywords and their corresponding indices
+            details_mapping = {
+                "username": "Username:",
+                "age": "Age:",
+                "likes": "Likes:",
+                "dislikes": "Dislikes:",
+                "entertainment_preference": "Preferred entertainment method:"
+            }
+
+            # Extract each user detail based on keywords
+            for key, keyword in details_mapping.items():
+                if keyword in response:
+                    detail_start = response.find(keyword) + len(keyword)
+                    detail_end = response.find("\n", detail_start)
+                    user_info[key] = response[detail_start:detail_end].strip()
+
+        except Exception as e:
+            print(f"Error extracting user details: {e}")
+
         return tuple(user_info.values())
     
+    def extract_user_details_from_database(self, username):
+        try:
+            conn = sqlite3.connect('user_profiles.db')
+            cursor = conn.cursor()
+
+            cursor.execute('''
+                SELECT username, age, likes, dislikes, entertainment_preference 
+                FROM user_profiles 
+                WHERE username=?
+            ''', (username,))
+            user_data = cursor.fetchone()
+            conn.close()
+
+            return user_data  # Returns a tuple (username, age, likes, dislikes, entertainment_preference)
+
+        except sqlite3.Error as e:
+            print(f"Error fetching user data from the database: {e}")
+            return None
+        
+    def extract_username_from_response(self, response):
+        # Assuming the username is provided after a colon and before a newline
+        username_start = response.find("Username:") + len("Username:")
+        username_end = response.find("\n", username_start)
+        username = response[username_start:username_end].strip()
+
+        return username
+    
+    def generate_response(self, message: str):
+        response = self.engine.get_completion(message)
+
+        NEW_USER_ON = False
+        OLD_USER_ON = False
+
+        # Check if new or old user
+        if "NEW_USER_ON" in response:
+            NEW_USER_ON = True
+            
+        elif "OLD_USER_ON" in response:
+            OLD_USER_ON = True
+
+        if NEW_USER_ON:
+
+            # Assuming the response contains user details in a structured format
+            user_details = self.extract_user_details(response)
+            if user_details:
+                insert_user_profile(user_details[0], user_details[1], user_details[2], user_details[3], user_details[4])
+                return "User profile inserted successfully."
+            
+
+        if OLD_USER_ON:
+        
+            old_username = self.extract_username_from_response(response)  # Extract old username from response
+            # Assuming the response contains user details in a structured format
+            old_user_data = self.extract_user_details_from_database(old_username)
+
+            if old_user_data:
+                formatted_data = f"This is your user data: {old_user_data}"
+                return formatted_data
+
+        return response
+        
+
     def __str__(self):
         shift = "   "
         class_name = str(type(self)).split('.')[-1].replace("'>", "")

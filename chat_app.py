@@ -26,7 +26,7 @@ def initialize() -> None:
         st.selectbox(label="Prompt", options=["prompt1", "prompt2"])
         st.session_state.system_behavior = st.text_area(
             label="Prompt",
-            value=prompts[0]["prompt"]
+            value=prompts[1]["prompt1"]
         )
 
     st.sidebar.title("🤖 🎞️")
