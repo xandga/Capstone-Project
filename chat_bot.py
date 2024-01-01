@@ -42,6 +42,7 @@ ChatBot classes
 
 import random
 from openai import OpenAI
+import re
 from util import local_settings
 
 # [i]                                                                                            #
@@ -115,6 +116,7 @@ class CritiBot:
                 user_info[key] = response[start_index:end_index].strip()
 
         return tuple(user_info.values())'''
+        
     def extract_user_details(self, response):
         user_info = {
             "username": "",
@@ -165,14 +167,16 @@ class CritiBot:
             print(f"Error fetching user data from the database: {e}")
             return None
         
-    def extract_username_from_response(self, response):
-        # Assuming the username is provided after a colon and before a newline
-        username_start = response.find("Username:") + len("Username:")
-        username_end = response.find("\n", username_start)
-        username = response[username_start:username_end].strip()
-
-        return username
     
+    def extract_username_from_response(self, sentence):
+        pattern = r'Username: (\w+)\.'
+        match = re.search(pattern, sentence)
+        if match:
+            return match.group(1)
+        else:
+            return None
+
+
     def generate_response(self, message: str):
         response = self.engine.get_completion(message)
 
@@ -193,20 +197,22 @@ class CritiBot:
             if user_details:
                 insert_user_profile(user_details[0], user_details[1], user_details[2], user_details[3], user_details[4])
                 return "User profile inserted successfully."
-            
+                    
 
         if OLD_USER_ON:
-        
             old_username = self.extract_username_from_response(response)  # Extract old username from response
             # Assuming the response contains user details in a structured format
             old_user_data = self.extract_user_details_from_database(old_username)
 
-            if old_user_data:
-                formatted_data = f"This is your user data: {old_user_data}"
-                return formatted_data
+            formatted_data = f"This is your user data: {old_user_data}"
+            print("The username is", old_username)
+            old_user_messages = self.engine.messages.copy()  # Make a copy of current messages
+            user_data_message = f"This is your user data: {old_user_data}"
+            self.engine.messages = old_user_messages + [{"role": "assistant", "content": user_data_message}]
+
+            return user_data_message
 
         return response
-        
 
     def __str__(self):
         shift = "   "
@@ -232,9 +238,4 @@ class CritiBot:
         
 # Creating an instance of CritiBot
 criti_bot_instance = CritiBot(system_behavior='your_behavior_string')
-
-
-
-
-
 
