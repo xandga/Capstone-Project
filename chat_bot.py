@@ -3,31 +3,32 @@
 import sqlite3
 
 # Connect to SQLite database (creates one if doesn't exist)
-conn = sqlite3.connect('user_profiles.db')
+conn = sqlite3.connect('user_data.db')
 cursor = conn.cursor()
 
 # Create a table for user profiles if not exists
 cursor.execute('''
-    CREATE TABLE IF NOT EXISTS user_profiles(
+    CREATE TABLE IF NOT EXISTS user_data(
         id INTEGER PRIMARY KEY,
         username TEXT,
         age INTEGER,
+        gender BOOL,
+        entertainment_preference TEXT,
         likes TEXT,
-        dislikes TEXT,
-        entertainment_preference TEXT
+        dislikes TEXT
     )
 ''')
 
 # Function to insert user profile into the database
-def insert_user_profile(username, age, likes, dislikes, entertainment_preference):
+def insert_user_profile(username, age, gender, entertainment_preference, likes, dislikes):
     try:
-        conn = sqlite3.connect('user_profiles.db')
+        conn = sqlite3.connect('user_data.db')
         cursor = conn.cursor()
 
         cursor.execute('''
-            INSERT INTO user_profiles (username, age, likes, dislikes, entertainment_preference)
-            VALUES (?, ?, ?, ?, ?)
-        ''', (username, age, likes, dislikes, entertainment_preference))
+            INSERT INTO user_data (username, age, gender, entertainment_preference, likes, dislikes)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (username, age, gender, entertainment_preference, likes, dislikes))
         
         conn.commit()
         conn.close()  # Close the connection after committing changes
@@ -97,33 +98,15 @@ class CritiBot:
             OPENAI_API_KEY=local_settings.OPENAI_API_KEY,
             system_behavior=system_behavior
         )
-    '''
-        # Add a method in your CritiBot class to extract user details
-    def extract_user_details(self, response):
-        user_info = {
-            "username": "",
-            "age": "",
-            "likes": "",
-            "dislikes": "",
-            "entertainment_preference": ""
-        }
-
-        # Example extraction logic assuming response is structured
-        for key in user_info:
-            if key in response:
-                start_index = response.find(key) + len(key) + 1
-                end_index = response.find("\n", start_index)
-                user_info[key] = response[start_index:end_index].strip()
-
-        return tuple(user_info.values())'''
         
     def extract_user_details(self, response):
         user_info = {
             "username": "",
             "age": "",
+            "gender": "",
+            "entertainment_preference": "",
             "likes": "",
-            "dislikes": "",
-            "entertainment_preference": ""
+            "dislikes": ""
         }
 
         try:
@@ -131,9 +114,10 @@ class CritiBot:
             details_mapping = {
                 "username": "Username:",
                 "age": "Age:",
+                "gender": "Gender:",
+                "entertainment_preference": "Preferred entertainment method:",
                 "likes": "Likes:",
-                "dislikes": "Dislikes:",
-                "entertainment_preference": "Preferred entertainment method:"
+                "dislikes": "Dislikes:"
             }
 
             # Extract each user detail based on keywords
@@ -150,18 +134,18 @@ class CritiBot:
     
     def extract_user_details_from_database(self, username):
         try:
-            conn = sqlite3.connect('user_profiles.db')
+            conn = sqlite3.connect('user_data.db')
             cursor = conn.cursor()
 
             cursor.execute('''
-                SELECT username, age, likes, dislikes, entertainment_preference 
-                FROM user_profiles 
+                SELECT username, age, gender,entertainment_preference, likes, dislikes 
+                FROM user_data
                 WHERE username=?
             ''', (username,))
             user_data = cursor.fetchone()
             conn.close()
 
-            return user_data  # Returns a tuple (username, age, likes, dislikes, entertainment_preference)
+            return user_data  # Returns a tuple (username, age, gender, entertainment_preference, likes, dislikes)
 
         except sqlite3.Error as e:
             print(f"Error fetching user data from the database: {e}")
@@ -195,7 +179,7 @@ class CritiBot:
             # Assuming the response contains user details in a structured format
             user_details = self.extract_user_details(response)
             if user_details:
-                insert_user_profile(user_details[0], user_details[1], user_details[2], user_details[3], user_details[4])
+                insert_user_profile(user_details[0], user_details[1], user_details[2], user_details[3], user_details[4], user_details[5])
                 return "User profile inserted successfully."
                     
 
