@@ -23,7 +23,7 @@ def initialize() -> None:
     """
 
     with st.expander("Bot Configuration"):
-        st.selectbox(label="Prompt", options=["prompt1", "prompt2"])
+        st.selectbox(label="Prompt", options=["prompt", "prompt1"])
         st.session_state.system_behavior = st.text_area(
             label="Prompt",
             value=prompts[1]["prompt1"]

@@ -84,7 +84,8 @@ class GPT_Helper:
 
 # [i]                                                                                            #
 # [i] CritiBot                                                                               #
-# [i]                                                                                            #
+# [i]      
+                                                                                          #
 
 class CritiBot:
     """
@@ -180,10 +181,13 @@ class CritiBot:
             user_details = self.extract_user_details(response)
             if user_details:
                 insert_user_profile(user_details[0], user_details[1], user_details[2], user_details[3], user_details[4], user_details[5])
+
+                NEW_USER_ON = False
+
                 return "User profile inserted successfully."
                     
-
         if OLD_USER_ON:
+            print("OLD_USER_ON")
             old_username = self.extract_username_from_response(response)  # Extract old username from response
             # Assuming the response contains user details in a structured format
             old_user_data = self.extract_user_details_from_database(old_username)
@@ -194,10 +198,13 @@ class CritiBot:
             user_data_message = f"This is your user data: {old_user_data}"
             self.engine.messages = old_user_messages + [{"role": "assistant", "content": user_data_message}]
 
+            OLD_USER_ON = False
+
             return user_data_message
-
+        
         return response
-
+    
+    
     def __str__(self):
         shift = "   "
         class_name = str(type(self)).split('.')[-1].replace("'>", "")
@@ -219,7 +226,4 @@ class CritiBot:
     def system_behavior(self, system_config : str):
         self.__system_behavior = system_config
         
-        
-# Creating an instance of CritiBot
-criti_bot_instance = CritiBot(system_behavior='your_behavior_string')
 
