@@ -12,10 +12,14 @@ cursor.execute('''
         id INTEGER PRIMARY KEY,
         username TEXT,
         age INTEGER,
-        gender BOOL,
-        entertainment_preference TEXT,
+        gender TEXT,
+        fav_entertainment TEXT,
+        least_fav_entertainment TEXT,
         likes TEXT,
-        dislikes TEXT
+        dislikes TEXT,
+        movie_watching_freq TEXT,
+        show_watching_freq TEXT,
+        reading_freq TEXT
     )
 ''')
 
@@ -26,8 +30,8 @@ def insert_user_profile(username, age, gender, entertainment_preference, likes, 
         cursor = conn.cursor()
 
         cursor.execute('''
-            INSERT INTO user_data (username, age, gender, entertainment_preference, likes, dislikes)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO user_data (username, age, gender, fav_entertainment, least_fav_entertainment, likes, dislikes, movie_watching_freq, show_watching_freq, reading_freq)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (username, age, gender, entertainment_preference, likes, dislikes))
         
         conn.commit()
@@ -46,9 +50,9 @@ from openai import OpenAI
 import re
 from util import local_settings
 
-# [i]                                                                                            #
-# [i] OpenAI API                                                                                 #
-# [i]                                                                                            #
+#                                                                                            
+# OpenAI API                                                                                 
+#                                                                                             
 
 class GPT_Helper:
     def __init__(self, OPENAI_API_KEY: str, system_behavior: str="", model="gpt-3.5-turbo"):
@@ -62,10 +66,10 @@ class GPT_Helper:
                 "content": system_behavior
             })
 
-    # [i] get completion from the model             #
+    # get completion from the model             
     def get_completion(self, prompt, temperature=0):
 
-        self.messages.append({"role": "user", "content": prompt})
+        self.messages.append({"role": "user", "content": prompt})  
 
         completion = self.client.chat.completions.create(
             model=self.model,
@@ -82,10 +86,10 @@ class GPT_Helper:
 
         return completion.choices[0].message.content
 
-# [i]                                                                                            #
-# [i] CritiBot                                                                               #
-# [i]      
-                                                                                          #
+
+#                                                                                     
+# CritiBot                                                                            
+#                                                                                     
 
 class CritiBot:
     """
@@ -105,9 +109,13 @@ class CritiBot:
             "username": "",
             "age": "",
             "gender": "",
-            "entertainment_preference": "",
+            "fav_entertainment": "",
+            "least_fav_entertainment": "",
             "likes": "",
-            "dislikes": ""
+            "dislikes": "",
+            "movie_watching_freq":"",
+            "show_watching_freq":"",
+            "reading_freq":""
         }
 
         try:
@@ -116,9 +124,13 @@ class CritiBot:
                 "username": "Username:",
                 "age": "Age:",
                 "gender": "Gender:",
-                "entertainment_preference": "Preferred entertainment method:",
+                "fav_entertainment": "Preferred entertainment method:",
+                "least_fav_entertainment": "Preferred entertainment method:",
                 "likes": "Likes:",
-                "dislikes": "Dislikes:"
+                "dislikes": "Dislikes:",
+                "movie_watching_freq": "Watching Frequency:" ,
+                "show_watching_freq": "Watching Frequency:",
+                "reading_freq": "Reading Frequency"
             }
 
             # Extract each user detail based on keywords
@@ -139,7 +151,7 @@ class CritiBot:
             cursor = conn.cursor()
 
             cursor.execute('''
-                SELECT username, age, gender,entertainment_preference, likes, dislikes 
+                SELECT username, age, gender,fav_entertainment, least_fav_entertainment, likes, dislikes, movie_watching_freq, show_watching_freq, reading_freq
                 FROM user_data
                 WHERE username=?
             ''', (username,))
@@ -180,7 +192,8 @@ class CritiBot:
             # Assuming the response contains user details in a structured format
             user_details = self.extract_user_details(response)
             if user_details:
-                insert_user_profile(user_details[0], user_details[1], user_details[2], user_details[3], user_details[4], user_details[5])
+                insert_user_profile(user_details[0], user_details[1], user_details[2], user_details[3], user_details[4], user_details[5],
+                                    user_details[6], user_details[7], user_details[8], user_details[9])
 
                 NEW_USER_ON = False
 

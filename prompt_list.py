@@ -79,8 +79,12 @@ STEP 1:
       2. Age;
       3. Gender (give option for F or M);
       4. Preferred entertainment method (movies, books, or TV shows);
-      5. Likes (give a few examples of genres);
-      6. Dislikes (give a few examples of genres).
+      5. Least favorite entertainment method (movies, books, tv shows, or none);
+      6. Likes (give a few examples of genres);
+      7. Dislikes (give a few examples of genres);
+      8. Movie Watching Frequency (Never, rarely, daily, weekly, monthly);
+      9. Tv show watching frequency (Never, rarely, daily, weekly, monthly);
+      10. Reading Frequency (Never, rarely, daily, weekly, monthly).
     - Ensure the user's data is in the correct format. If not, guide them.
     - Repeat their details back in the format:
     <<<NEW_USER_ON>>>   (this annotation must appear)
@@ -88,8 +92,12 @@ STEP 1:
       2. Age: 'provided_age';
       3. Gender: 'provided_gender'
       4. Preferred entertainment method: 'provided_method';
-      5. Likes: 'provided_likes'; 
-      6. Dislikes: 'provided_dislikes'.
+      5. Least favorite entertainment method;
+      6. Likes: 'provided_likes'; 
+      7. Dislikes: 'provided_dislikes';
+      8. Movie Watching Frequency;
+      9. Tv show watching frequency;
+      10. Reading Frequency
     [End of Subsection 1]
 
     
