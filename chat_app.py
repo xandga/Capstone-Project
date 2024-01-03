@@ -13,9 +13,9 @@ from chat_bot import CritiBot
 from util import local_settings
 from prompt_list import prompts
 
-# [i]                                                                                            #
-# [i] Initialize FrontEnd App                                                                    #
-# [i]                                                                                            #
+#                                                                                         
+# Initialize FrontEnd App                                                                    
+#                                                                                           
 
 def initialize() -> None:
     """
@@ -23,7 +23,7 @@ def initialize() -> None:
     """
 
     with st.expander("Bot Configuration"):
-        st.selectbox(label="Prompt", options=["prompt1", "prompt2"])
+        st.selectbox(label="Prompt", options=["prompt", "prompt1"])
         st.session_state.system_behavior = st.text_area(
             label="Prompt",
             value=prompts[1]["prompt1"]
@@ -40,9 +40,9 @@ def initialize() -> None:
         )
 
 
-# [i]                                                                                            #
-# [i] Display History Message                                                                    #
-# [i]                                                                                            #
+#                                                                                          
+# Display History Message                                                                    
+#                                                                                         
 
 def display_history_messages():
     # Display chat messages from history on app rerun
@@ -51,9 +51,9 @@ def display_history_messages():
             st.markdown(message["content"])
 
 
-# [i]                                                                                            #
-# [i] Display User Message                                                                       #
-# [i]                                                                                            #
+# 
+# Display User Message                                                                       
+#                                                                                            
 
 def display_user_msg(message: str):
     """
@@ -63,9 +63,9 @@ def display_user_msg(message: str):
         st.markdown(message)
 
 
-# [i]                                                                                            #
-# [i] Display User Message                                                                       #
-# [i]                                                                                            #
+#                                                                                            
+# Display User Message                                                                       
+#                                                                                            
 
 def display_assistant_msg(message: str, animated=True):
     """
@@ -91,19 +91,19 @@ def display_assistant_msg(message: str, animated=True):
             st.markdown(message)
 
 
-# [*]                                                                                            #
-# [*] MAIN                                                                                       #
-# [*]                                                                                            #
+#                                                                                           
+# MAIN                                                                                       
+#                                                                                            
 
 if __name__ == "__main__":
     initialize()
 
-    # [i] Display History #
+    # Display History 
     display_history_messages()
 
     if prompt := st.chat_input("Type here..."):
 
-        # [*] Request & Response #
+        #  Request & Response 
         display_user_msg(message=prompt)
         assistant_response = st.session_state.chatbot.generate_response(
             message=prompt
@@ -111,7 +111,7 @@ if __name__ == "__main__":
         display_assistant_msg(message=assistant_response)
 
 
-    # [i] Sidebar #
+    #  Sidebar 
     with st.sidebar:
         with st.expander("Information"):
             if local_settings.OPENAI_API_KEY:
