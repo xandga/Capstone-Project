@@ -1,4 +1,4 @@
-from Google import Create_Service
+from Google_Drive_API.Google import Create_Service
 
 CLIENT_SECRET_FILE = 'credentials.json'
 API_NAME = 'drive'

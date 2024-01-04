@@ -25,7 +25,13 @@
 **1st:** Add file 'credentials.json' to repository (it's already added to gitignore, so don't worry, it won't be tracked) <br>
 **2nd:** Run 'download.py' to create the data files in the proper directory. They should appear in a directory called "Data".
 
-Note: The files drive.py, Google.py and 'token_drive_v3.pickle' are just for setting up the Google Drive API.
+Note: The files drive.py, Google.py and 'token_drive_v3.pickle', present in the folder Google_Drive_API are just for setting up the Google Drive API.
+
+The file credentials.json (provided in the email) must be added to the general folder, where the file download.py is, otherwise it will not be recognized.
+
+>The Drive API should not redirect you to an authorization page, but in case it does and a warning that it is unsafe appears, click on "Advanced" and "Continue" (option that appears bellow the email) to proceed. 
+In the unlikely case that this does not work, the files can be downloaded and moved manually into a folder called Data. In that case, the zipped files will also need to be unzipped manually. This procedure is not expected to be needed, though, as simply running the download.py file should work well and accomplish this.
+
 
 ### 1.2. To run the chat_app <a name="run-chat-app"></a>
 
@@ -73,7 +79,7 @@ The needed packages are in the requirements file. Use "pip install -r requiremen
 >**Metadata:** <br>
 - Metadata_Books.ipynb <br>
 - Metadata_Movies.ipynb <br>
-- Metadata_TV_Shows.ipynb <br
+- Metadata_TV_Shows.ipynb <br>
 Mudar o nome destes ficheiros e criar um md com a descrição de cada feature em cada um deles.
 
 >**Google api and downloads:** <br>
@@ -87,7 +93,8 @@ Mudar o nome destes ficheiros e criar um md com a descrição de cada feature em
 - Movie_files <br>
 - Tv_shows_files <br>
 - users_data.db <br>
-... 
+- classification_data.csv <br>
+ 
 
 >**Models:** <br>
 - Cluster Model <br>
@@ -97,17 +104,13 @@ Mudar o nome destes ficheiros e criar um md com a descrição de cada feature em
 - PDF file (or Vector DB) <br>
 
 
-To run the app directly from the repository, you need to use the code "streamplit run chat_app.py"
+To run the app directly from the repository, you need to use the code "streamlit run chat_app.py"
+
 >**The files related to the app are:** <br>
 - chat_bot.py <br>
 - chat_app.py <br>
 - prompt_list.py <br>
 
 
->For now, our **test files** are (prob will be deleted): <br>
-- user_data.db <br>
-- user_profiles.db <br>
-- test.py <br>
-The user_data and user_profiles were used to test if the new user and old user attempts in the chat worked.
 
 

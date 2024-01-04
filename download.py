@@ -3,7 +3,7 @@ from googleapiclient.discovery import build
 import io
 from googleapiclient.http import MediaIoBaseDownload
 import os
-from drive import service
+from Google_Drive_API.drive import service
 
 # Path where you want to save the downloaded files
 import os
@@ -20,13 +20,7 @@ else:
 
 download_folder = 'Data'
 
-'''def authenticate_google_drive():
-    # Load credentials from a previously saved token.json file or use any other authentication flow
-    creds = Credentials.from_authorized_user_file('credentials.json')  
 
-    # Build the Drive service
-    service = build('drive', 'v3', credentials=creds)
-    return service'''
 
 def download_files_from_drive(service, file_id, file_name):
     request = service.files().get_media(fileId=file_id)
@@ -51,7 +45,8 @@ def main():
         {'id': '1zNel2pa4_d2o2nRT4xYhAKknzii-mTfl', 'name': 'Tv_show_files.zip'},
         {'id': '1FaE2PAI1RDZXP4v-ou99JEDQvdRIUzzQ', 'name': 'Movie_files.zip'},
         {'id': '1WpCfMac70-I_eUlbUDQoRCNDDTuV6XEa', 'name': 'Book_files.zip'},
-        {'id': '14CSaSNSsTvlbGZ9ICn-8W57ge22YMylp', 'name': 'users_data.db'}
+        {'id': '14CSaSNSsTvlbGZ9ICn-8W57ge22YMylp', 'name': 'users_data.db'},
+        {'id': '1kAd86GVpCE528zyiU0tM6cnaid-YuAne', 'name': 'classification_data.csv'}
     ]
 
     for file_info in files_to_download:
@@ -76,6 +71,8 @@ def unzip_files(folder_path):
                 with zipfile.ZipFile(file_path, 'r') as zip_ref:
                     zip_ref.extractall(root)
                 os.remove(file_path)  # Remove the zip file after extraction
+
+                
 
 
 
