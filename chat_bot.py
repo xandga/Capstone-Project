@@ -96,9 +96,55 @@ movies = pd.read_csv("Data/Metadata/movies.csv")
 shows = pd. read_csv("Data/Metadata/tvshows.csv")
 books = pd.read_csv("Data/Metadata/books.csv")
 
+
+
+
 from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
+
+from PyPDF2 import PdfReader
+#from langchain.llms import OpenAI
+from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.vectorstores import FAISS
+from langchain.chains.question_answering import load_qa_chain
+
+from PyPDF2 import PdfReader
+from nltk.tokenize import word_tokenize
+#import nltk
+#nltk.download('punkt')
+
+# Function to split text into chunks based on the number of words per chunk with overlap
+def split_text_by_words_with_overlap(text, words_per_chunk, overlap):
+    words = word_tokenize(text)
+    chunks = []
+    start = 0
+    while start < len(words):
+        chunk = " ".join(words[start:start + words_per_chunk])
+        chunks.append(chunk)
+        start += words_per_chunk - overlap  # Adding overlap
+    return chunks
+
+pdf = PdfReader("General definitions.pdf")
+pdf_text = ""
+
+for page in pdf.pages:
+    text = page.extract_text()
+    if text:
+        pdf_text += text
+
+# Define the number of words per chunk and the overlap
+words_per_chunk = 500  # Change this value according to your preference
+overlap = 100  # Change this value for the desired overlap
+
+# Split text into chunks based on the number of words per chunk with overlap
+final_data = split_text_by_words_with_overlap(pdf_text, words_per_chunk, overlap)
+
+embeddings = OpenAIEmbeddings()
+document_searcher = FAISS.from_texts(final_data, embeddings)
+
+from langchain import llms
 
 
 class CritiBot:
@@ -228,6 +274,7 @@ class CritiBot:
         MOVIES_ON = False
         SHOWS_ON = False
         BOOKS_ON = False
+        PDF_READER = False
 
         # Searhing for markers
         if "NEW_USER_ON" in response:
@@ -244,6 +291,8 @@ class CritiBot:
 
         elif "BOOKS_ON" in response:
             BOOKS_ON = True
+        elif "PDF_READER" in response:
+            PDF_READER = True
 
         ##################################################################
         if NEW_USER_ON:
@@ -251,6 +300,9 @@ class CritiBot:
             user_details = self.extract_user_details(response)
             if user_details:
                 insert_user_profile(user_details[0], user_details[1], user_details[2], user_details[3], user_details[4], user_details[5], user_details[6], user_details[7], user_details[8], user_details[9])
+
+
+                #INSERT CLASSIFICATION PART HERE
 
                 NEW_USER_ON = False
 
@@ -328,8 +380,21 @@ class CritiBot:
             BOOKS_ON = False
 
             return user_data_message
+        
+        if PDF_READER:
 
+            print(response)
+            docs =  document_searcher.similarity_search(response)
 
+            chain = load_qa_chain(llms.OpenAI(), chain_type="stuff")
+
+            user_data_message = chain.run(input_documents=docs, question=response)
+
+            old_user_messages = self.engine.messages.copy()  # Make a copy of current messages
+            self.engine.messages = old_user_messages + [{"role": "assistant", "content": user_data_message}]
+
+            return user_data_message
+        
         return response          
         
     
