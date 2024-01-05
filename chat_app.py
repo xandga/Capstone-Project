@@ -1,9 +1,9 @@
-"""
-Chat Version 3
-    ✅ Chat User and Assistant
-    ✅ History (all messages)
-    ✅ Animation when displaying the assistant message
-"""
+import streamlit as st
+
+# Displaying the company logo
+st.image("logo.png", width=200)
+st.header('CritiBot', divider='rainbow')
+
 
 import random
 import time
@@ -29,16 +29,17 @@ def initialize() -> None:
             value=prompts[1]["prompt1"]
         )
 
+    st.sidebar.image("logo.png", width=100)
     st.sidebar.title("🤖 🎞️")
+
 
     if "chatbot" not in st.session_state:
         st.session_state.chatbot = CritiBot(st.session_state.system_behavior)
 
     with st.sidebar:
         st.markdown(
-            f"ChatBot in use: <font color='cyan'>{st.session_state.chatbot.__str__()}</font>", unsafe_allow_html=True
+            f"ChatBot in use: <font color='green'>{st.session_state.chatbot.__str__()}</font>", unsafe_allow_html=True
         )
-
 
 #                                                                                          
 # Display History Message                                                                    

@@ -42,3 +42,11 @@ GIVE CONVERSATION EXAMPLE (THROUGH PRINTS)
 - Access to company information and clearing of doubts (through the PDF)
 
 GIVE CONVERSATION EXAMPLE (THROUGH PRINTS)
+
+- Who are the founders of CritiVerse?
+- What are the existing CritiPersonalities?
+- What are the Critiscores?
+- What can the chat bot of CritiVerse do?
+- What are the main things to resolve with CritiVerse?  
+- What is CritiVerse?
+- How does CritiVerse use my data?
