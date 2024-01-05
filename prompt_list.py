@@ -143,12 +143,16 @@ OUTPUT FORMAT 1:
     - "{Recommendation n}": Short description
 
 Step 5:
+- If the customer asks for information about CritiVerse, repeat their question back to them and add the annotation "PDF_READER" at the end (this is very important), like in the following example:
+ "You want to know who the CEO of CritiVerse is? PDF_READER"
+
+Step 6:
 - Confirm if the customer wants to add anything else.
 
-Step 8:
+Step 7:
 - Recap the conversation with a summary.
 
-Step 9:
+Step 8:
 - Conclude with a friendly goodbye and gratitude.
 
 """

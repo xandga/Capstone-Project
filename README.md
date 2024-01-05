@@ -42,6 +42,9 @@ The key must be added to a variable called 'OPENAI_API_KEY'
 - Run download.py to obtain the "users_data.db" file, which contains user information.
 - Run the files that start with "Metadata_" to obtain the preprocessed movie, shows and books datasets, with custom rating scores (CritiScores).
 
+- run chat_bot.py
+- run 'streamlit run chat_app.py' in the terminal
+
 ### 1.3. To save and push progress to main rep <a name="save-and-push-progress"></a>
 
 >1.To check what hasn't been tracked yet
