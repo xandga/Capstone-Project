@@ -97,8 +97,6 @@ shows = pd. read_csv("Data/Metadata/tvshows.csv")
 books = pd.read_csv("Data/Metadata/books.csv")
 
 
-
-
 from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
@@ -110,10 +108,9 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import FAISS
 from langchain.chains.question_answering import load_qa_chain
 
-from PyPDF2 import PdfReader
+import nltk
 from nltk.tokenize import word_tokenize
-#import nltk
-#nltk.download('punkt')
+nltk.download('punkt')
 
 # Function to split text into chunks based on the number of words per chunk with overlap
 def split_text_by_words_with_overlap(text, words_per_chunk, overlap):
@@ -126,7 +123,7 @@ def split_text_by_words_with_overlap(text, words_per_chunk, overlap):
         start += words_per_chunk - overlap  # Adding overlap
     return chunks
 
-pdf = PdfReader("General definitions.pdf")
+pdf = PdfReader("About CritiVerse.pdf")
 pdf_text = ""
 
 for page in pdf.pages:
@@ -205,7 +202,6 @@ class CritiBot:
         try:
             conn = sqlite3.connect('Data/users_data.db')
             cursor = conn.cursor()
-
             cursor.execute('''
                 SELECT username, age, gender,fav_entertainment, least_fav_entertainment, likes, dislikes, movie_watching_freq, show_watching_freq, reading_freq
                 FROM Users
@@ -219,17 +215,16 @@ class CritiBot:
         except sqlite3.Error as e:
             print(f"Error fetching user data from the database: {e}")
             return None
-        
+    
     
     def extract_username_from_response(self, sentence):
-        pattern = r'Username: (\w+)\.'
+        pattern = r"Username: ?([\w]+)?"
         match = re.search(pattern, sentence)
         if match:
             return match.group(1)
         else:
             return None
         
-
     def extract_movie_titles(self, text):
         pattern = r'^- "(.*?)":'  # Adjusted pattern to match movie/tv show titles in the specified format
         movie_titles = re.findall(pattern, text, re.MULTILINE)
@@ -308,7 +303,7 @@ class CritiBot:
 
                 return "User profile inserted successfully."
             
-        ##################################################################
+        #################################################################
         if OLD_USER_ON:
             print("OLD_USER_ON")
             old_username = self.extract_username_from_response(response)  # Extract old username from response
@@ -321,7 +316,27 @@ class CritiBot:
 
             OLD_USER_ON = False
 
-            return user_data_message
+        #     return user_data_message
+        # if OLD_USER_ON:
+        #     print("OLD_USER_ON")
+        #     old_username = self.extract_username_from_response(response)  # Extract old username from response
+
+        #     print(f"Old Username extracted: {old_username}")  # Check if the username is correctly extracted
+
+        #     old_user_data = self.extract_user_details_from_database(old_username)
+        #     print(f"Old User Data: {old_user_data}")  # Check if old user data is retrieved from the database
+
+        #     if old_user_data:
+        #         old_user_messages = self.engine.messages.copy()  # Make a copy of current messages
+        #         user_data_message = f"This is your user data: {old_user_data}"
+        #         self.engine.messages = old_user_messages + [{"role": "assistant", "content": user_data_message}]
+
+        #         OLD_USER_ON = False
+        #         return user_data_message
+        #     else:
+        #         print("Old User Data not found in the database.")
+        #         return "Your data was not found. Please create a new account or try again."
+
         
         ##################################################################
         if MOVIES_ON:
