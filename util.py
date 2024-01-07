@@ -1,4 +1,3 @@
-
 """
 A Python module for interacting with OpenAI's GPT models and managing settings.
 
@@ -8,27 +7,22 @@ Classes:
 - `Settings`: A class for managing settings using Pydantic's BaseSettings.
 - `GPT_Wrapper`: A class for interfacing with OpenAI's GPT models.
 """
+
 import os
 from dotenv import find_dotenv, load_dotenv
 from pydantic_settings import BaseSettings
 from pydantic import Field
 from openai import OpenAI
 
-
-# [i]                                                                                            #
-# [i] Settings                                                                                   #
-# [i]                                                                                            #
-
+#                                                                                            
+# Settings                                                                                   
+#                                                                                          
 class Settings(BaseSettings):
     OPENAI_API_KEY: str = Field(validation_alias="OPENAI_API_KEY")
 
-
-
-# [i]                                                                                            #
-# [i] Vars & Instances                                                                           #
-# [i]                                                                                            #
-
-
+#                                                                                             
+# Vars & Instances                                                                           
+#                                                                                             
 """
 NOTE:
 
