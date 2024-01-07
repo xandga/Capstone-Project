@@ -1,11 +1,11 @@
 import streamlit as st
 
+st.set_page_config(layout="wide")
 # Displaying the company logo
 st.image("logo.png", width=200)
 st.header('CritiBot', divider='rainbow')
 
 
-import random
 import time
 import streamlit as st
 
@@ -15,7 +15,9 @@ from prompt_list import prompts
 
 #                                                                                         
 # Initialize FrontEnd App                                                                    
-#                                                                                           
+#                     
+
+
 
 def initialize() -> None:
     """
@@ -26,7 +28,7 @@ def initialize() -> None:
         st.selectbox(label="Prompt", options=["prompt", "prompt1"])
         st.session_state.system_behavior = st.text_area(
             label="Prompt",
-            value=prompts[1]["prompt1"]
+            value=prompts[0]["prompt"]
         )
 
     st.sidebar.image("logo.png", width=100)
