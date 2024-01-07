@@ -1,19 +1,22 @@
-# Capstone Project
-
 <h1><center> Use Cases </center></h1>
 
 # Table of Contents
 
-1. [Create an Account](#create-account)
+1. [Create an Account and User Classification]()
 2. [User Recognition](#login)
-3. [Provide Recommendations](#recommendations)
-4. [User Classification](#user-classification)
-5. [Access to CritiScores](#critiscores)
-6. [Access to Company Information](#company-info)
+3. [Provide Recommendations and their CritiScores]()
+4. [Access to Company Information](#company-info)
+
+   1. [Who are the founders of CritiVerse?]()
+   2. [What are the existing CritiPersonalities?]()
+   3. [What are the CritiScores?]()
+   4. [What can the chat bot of CritiVerse do?]()
+   5. [What are the main things to resolve with CritiVerse?]()
+   6. [How does CritiVerse use my data?]()
 
 ---
 
-# 1. Create an Account
+# 1. Create an Account and User Classification
 
 Starting the Conversation:
 
@@ -27,35 +30,25 @@ And now that the CritiBot has the information about the new user we can confirm 
 
 ![UseCase1](Use%20Cases%20Images/UseCase1%20-%204.png)
 
-# 2. User Recognition `<a name="login"></a>`
+# 2. User Recognition
 
-GIVE CONVERSATION EXAMPLE (THROUGH PRINTS)
+Througth the conversation with CritiBot. When we say that we are not new and provide our username, the bot it is capable of checking our data.
 
-GIVE A FEW USERNAMES THAT ARE PRESENT IN THE DATABASE
+![UseCase2](Use%20Cases%20Images/UseCase2.png)
 
-# 3. Provide Recommendations 
+# 3. Provide Recommendations and their CritiScores
 
 Initializing the conversation.
 
 ![UseCase3](Use%20Cases%20Images/UseCase3%20-%201.png)
 
-Now we will ask for the recommendations.
+Now we will ask for the recommendations
 
-![UseCase3](Use%20Cases%20Images/UseCase3%20-%202.png)
 
 Ending the conversation, know that we have the recommendations.
 
-![UseCase3](Use%20Cases%20Images/UseCase3%20-%203.png)
 
-# 4. User Classification `<a name="user-classification"></a>`
-
-GIVE CONVERSATION EXAMPLE (THROUGH PRINTS)
-
-# 5. Access to CritiScores `<a name="critiscores"></a>`
-
-GIVE CONVERSATION EXAMPLE (THROUGH PRINTS)
-
-# 6. Access to Company Information `<a name="company-info"></a>`
+# 4. Access to Company Information
 
 Access to company information and clearing of doubts, through the PDF, named 'About CritiVerse', were the user can clarify some general doubts about the CritiVerse Company. First we will initializa the conversation:
 
@@ -63,31 +56,32 @@ Access to company information and clearing of doubts, through the PDF, named 'Ab
 
  Here is some questions that can be done by the user:
 
-## 6.1. Who are the founders of CritiVerse?
+## 4.1. Who are the founders of CritiVerse?
 
 ![UseCase6](Use%20Cases%20Images/UseCase6.1.png)
 
-## 6.2. What are the existing CritiPersonalities?
+## 4.2. What are the existing CritiPersonalities?
 
 ---
-ele foi burrinho e n consegui
+
+## 4.3.  What are the CritiScores?
+
 ---
-## 6.3.  What are the CritiScores?
 
 ![UseCase6](Use%20Cases%20Images/UseCase6.3.png)
 
-## 6.4. What can the chat bot of CritiVerse do?
+## 4.4. What can the chat bot of CritiVerse do?
 
 ![UseCase6](Use%20Cases%20Images/UseCase6.4.png)
 
-## 6.5. What are the main things to resolve with CritiVerse?
+## 4.5. What are the main things to resolve with CritiVerse?
 
 ![UseCase6](Use%20Cases%20Images/UseCase6.5.png)
 
-## 6.6. What is CritiVerse?
+## 4.6. What is CritiVerse?
 
 ![UseCase6](Use%20Cases%20Images/UseCase6.6.png)
 
-## 6.7. How does CritiVerse use my data?
+## 4.7. How does CritiVerse use my data?
 
 ![UseCase6](Use%20Cases%20Images/UseCase6.7.png)
