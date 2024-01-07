@@ -72,7 +72,7 @@ We use Google Drive API to download our files directly from our personal drive, 
 ### Needed Extensions (from Visual Studio Code):
 - SQLite <br>
 - SQLite3 Editor
-
+- Office Viewer (Markdown Editor)  <-to edit the md files and add images to them
 
 The needed packages are in the requirements file. Use "pip install -r requirements.txt" in the terminal.
 
@@ -113,6 +113,7 @@ To run the app directly from the repository, you need to use the code "streamlit
 - chat_bot.py <br>
 - chat_app.py <br>
 - prompt_list.py <br>
+
 
 
 
