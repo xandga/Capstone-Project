@@ -36,6 +36,7 @@ Througth the conversation with CritiBot. When we say that we are not new and pro
 
 ![UseCase2](Use%20Cases%20Images/UseCase2.png)
 
+
 # 3. Provide Recommendations and their CritiScores
 
 Initializing the conversation.
@@ -44,9 +45,7 @@ Initializing the conversation.
 
 Now we will ask for the recommendations
 
-
 Ending the conversation, know that we have the recommendations.
-
 
 # 4. Access to Company Information
 
