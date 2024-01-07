@@ -69,6 +69,7 @@ overlap = 100
 # Split text into chunks based on the number of words per chunk with overlap
 final_data = split_text_by_words_with_overlap(pdf_text, words_per_chunk, overlap)
 
+#Applying word embeddings and storing the result into a vector database through FAISS
 embeddings = langchain_openai.OpenAIEmbeddings()
 document_searcher = FAISS.from_texts(final_data, embeddings)
 
@@ -84,8 +85,10 @@ feat_scaler = MinMaxScaler()
 data_scaled = feat_scaler.fit_transform(classifier_data[['age']])  #it can be done like this because in this case, what matters is the 
                                         # range of the age, and that did not vary between the train and validation data used in the model
 
+
+#Function to apply preprocessing to the received information from the user, so that it's in the correct format to be sent to the classificaton model
 def apply_preproc_steps(data):
-    # Extracting age and gender from the data
+    # Extracting age from the data
     user_age = int(data[1])  # Extracting age from the data
     user_age = feat_scaler.transform([[user_age]])[0][0]
     column_names = ['username','age','gender','fav_entertainment','least_fav_entertainment','likes', 'dislikes', 
@@ -112,23 +115,18 @@ def apply_preproc_steps(data):
     data['least_fav_entertainment'] = data['least_fav_entertainment'].apply(lambda x: ', '.join(sorted(x.split(', '))))
 
     #### Encoding the favorite and least favorites entertainment methods
-    # One-hot encode 'fav_entertainment' column
     fav_encoded = data['fav_entertainment'].str.get_dummies(', ').add_prefix('fav_')
-    # One-hot encode 'least_fav_entertainment' column
     least_fav_encoded = data['least_fav_entertainment'].str.get_dummies(', ').add_prefix('least_fav_')
-    # Concatenate the new one-hot encoded columns with the original DataFrame
+    # Concatenate the new one-hot encoded columns with the DataFrame
     data = pd.concat([data, fav_encoded, least_fav_encoded], axis=1)
-    # Drop the original columns if needed
-    data.drop(['fav_entertainment', 'least_fav_entertainment'], axis=1, inplace=True)
 
     #### Encoding the likes and dislikes
     data['likes'] = data['likes'].apply(lambda x: ', '.join(sorted(x.split(', '))))
     data['dislikes'] = data['dislikes'].apply(lambda x: ', '.join(sorted(x.split(', '))))
-    # One-hot encode 'likes' column
+
     likes_encoded = data['likes'].str.get_dummies(', ').add_prefix('likes_')
-    # One-hot encode 'dislikes' column
     dislikes_encoded = data['dislikes'].str.get_dummies(', ').add_prefix('dislikes_')
-    # Concatenate the new one-hot encoded columns with the original DataFrame
+    # Concatenate the new one-hot encoded columns with the DataFrame
     data = pd.concat([data, likes_encoded, dislikes_encoded], axis=1)
 
 
@@ -154,7 +152,7 @@ def apply_preproc_steps(data):
 # Function to insert user profile into the database
 def insert_user_profile(username, age, gender, fav_entertainment, least_fav_entertainment, likes, dislikes, movie_watching_freq, show_watching_freq, reading_freq, CritiPersonality):
     try:
-        conn = sqlite3.connect('Data/users_data.db')
+        conn = sqlite3.connect('Data/users_data.db') #Connecting to the user database
         cursor = conn.cursor()
 
         cursor.execute('''
@@ -267,7 +265,7 @@ def get_rating(data, data_column, title):
     max_similarity = cosine_similarities.max()
 
     # Compare the maximum similarity score with the threshold
-    if max_similarity > 0.6:
+    if max_similarity > 0.6:  #We don't want things with low similarity to be considered a match, so a threshold is needed
         # Get the index of the content with the maximum similarity score
         index = cosine_similarities.argmax()
         # Get the corresponding rating
@@ -291,7 +289,7 @@ class GPT_Helper:
                 "content": system_behavior
             })
 
-    # get completion from the model             
+    # Get completion from the model             
     def get_completion(self, prompt, temperature=0):
 
         self.messages.append({"role": "user", "content": prompt})  
@@ -314,10 +312,8 @@ class GPT_Helper:
 #                                                                                     
 # CritiBot                                                                            
 #    
+#Defining our own chat bot, CritiBot:
 class CritiBot:
-    """
-    Generate a response by using LLMs.
-    """
 
     def __init__(self, system_behavior: str):
         self.__system_behavior = system_behavior
@@ -326,11 +322,11 @@ class CritiBot:
             OPENAI_API_KEY=local_settings.OPENAI_API_KEY,
             system_behavior=system_behavior
         )
-        
-                  
+
     def generate_response(self, message: str):
         response = self.engine.get_completion(message)
 
+        #Setting our markers to False
         NEW_USER_ON = False
         OLD_USER_ON = False
         MOVIES_ON = False
@@ -338,7 +334,7 @@ class CritiBot:
         BOOKS_ON = False
         PDF_READER = False
 
-        # Searhing for markers
+        # Searhing for markers in each response
         if "NEW_USER_ON" in response:
             NEW_USER_ON = True
             
@@ -357,6 +353,7 @@ class CritiBot:
             PDF_READER = True
 
         ##################################################################
+        #If the user is new and wants to simulate the account creation process:
         if NEW_USER_ON:
 
             user_details = extract_user_details(response)  #this returns a tuple
@@ -366,23 +363,29 @@ class CritiBot:
                 data_for_model = list(user_details)
                 observation_to_predict = apply_preproc_steps(data_for_model)
 
+                #Apllying our model to th
                 prediction = classifier_model.predict([observation_to_predict])
                 
                 old_user_messages = self.engine.messages.copy()  # Make a copy of current messages
                 user_data_message = f"This is your CritiPersonality: {prediction[0]}"
+                #Adding the last message, manually created, with the other previous messages
                 self.engine.messages = old_user_messages + [{"role": "assistant", "content": user_data_message}]
                 
+                #Resetting the marker
                 NEW_USER_ON = False
 
+                #Inseting the user details into the user database
                 insert_user_profile(user_details[0], user_details[1], user_details[2], user_details[3], user_details[4], user_details[5], user_details[6], user_details[7], user_details[8], user_details[9], prediction[0])
 
                 return user_data_message
             
-        #################################################################           
+        #################################################################
+        #If the user is old and wants to simulate the login process:           
         if OLD_USER_ON:
             old_username = extract_username_from_response(response)  # Extract old username from response
 
-            old_user_data = extract_user_details_from_database(old_username)
+            #Extract the user characteristics from the database
+            old_user_data = extract_user_details_from_database(old_username) 
 
             if old_user_data:
                 old_user_messages = self.engine.messages.copy()  # Make a copy of current messages
@@ -396,6 +399,7 @@ class CritiBot:
                 return "Your data was not found. Please create a new account or try again."
         
         ##################################################################
+        #If the user wants movie recommendations and also wants to know the CritiScores:
         if MOVIES_ON:
             titles = extract_titles(response)
             scores = []
@@ -416,6 +420,7 @@ class CritiBot:
             return user_data_message
         
         ##################################################################
+        #If the user wants tv-shows recommendations and also wants to know the CritiScores:
         if SHOWS_ON:
             titles = extract_titles(response)
             scores = []
@@ -435,6 +440,7 @@ class CritiBot:
             return user_data_message
 
         ##################################################################
+        #If the user wants book recommendations and also wants to know the CritiScores:
         if BOOKS_ON:
             titles = extract_book_titles(response)
             scores = []
@@ -453,13 +459,18 @@ class CritiBot:
 
             return user_data_message
         
+        ##################################################################
+        #If the user wants to know more information about the company:        
         if PDF_READER:
 
+            #Doing similarity search with the user question as prompt
             docs =  document_searcher.similarity_search(response)
             chain = load_qa_chain(llms.OpenAI(), chain_type="stuff")
 
             user_data_message = chain.run(input_documents=docs, question=response)
+
             old_user_messages = self.engine.messages.copy()  # Make a copy of current messages
+            #Updating the messages with the last one manually created, with the answer from the PDF
             self.engine.messages = old_user_messages + [{"role": "assistant", "content": user_data_message}]
 
             return user_data_message

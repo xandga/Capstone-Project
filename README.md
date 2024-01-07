@@ -108,6 +108,8 @@ Credentials needed to access the Drive files, through Google Drive API.
 Image needed for the chat_app.py file, so that we can display our logo in the app.
 - **prompt_list.py** <br>
 File with the prompt we used to give our chat bot direction
+- **DataBaseDescription.md** <br>
+Description of the features present in user_data.db, our users database
 - **README.md** <br>
 Current file. Has instructions and explanations on the repository and its files.
 - **requirements.txt** <br>
@@ -120,3 +122,9 @@ It accesses the openai_api_key and makes it possible to use it in the proper fil
 
 **Note:** <br>
 Some parts of our code, especially in the chat_app.py and chat_bot.py are from the classes. We added quite a bit, and changed what we needed, but the base is from the classes. 
+
+
+>This is how the repository should look, after downloading and running the needed files:
+
+![img](Use%20Cases%20Images/Rep_look1.png)
+![img](Use%20Cases%20Images/Rep_look2.png)
