@@ -13,12 +13,9 @@ from chat_bot import CritiBot
 from util import local_settings
 from prompt_list import prompts
 
-#                                                                                         
-# Initialize FrontEnd App                                                                    
-#                     
-
-
-
+######################################################################################################                                                                                         
+#### Initialize App                                                                    
+####                     
 def initialize() -> None:
     """
     Initialize the app
@@ -43,10 +40,9 @@ def initialize() -> None:
             f"<font color='FEFEFE'>{st.session_state.chatbot.__str__()}</font>", unsafe_allow_html=True
         )
 
-#                                                                                          
-# Display History Message                                                                    
-#                                                                                         
-
+######################################################################################################                                                                                          
+##### Display Previous Messages                                                      
+#####                                                                                         
 def display_history_messages():
     # Display chat messages from history on app rerun
     for message in st.session_state.chatbot.memory:
@@ -54,8 +50,8 @@ def display_history_messages():
             st.markdown(message["content"])
 
 
-####
-# Display User Message                                                                       
+######################################################################################################
+#### Display User Message                                                                       
 ####                                                                                        
 def display_user_msg(message: str):
     """
@@ -65,8 +61,8 @@ def display_user_msg(message: str):
         st.markdown(message)
 
 
-####                                                                                            
-# Display User Message                                                                       
+######################################################################################################                                                                                            
+#### Display User Message                                                                       
 ####                                                                                            
 def display_assistant_msg(message: str, animated=True):
     """
@@ -92,8 +88,8 @@ def display_assistant_msg(message: str, animated=True):
             st.markdown(message)
 
 
-####                                                                                           
-# MAIN                                                                                       
+######################################################################################################                                                                                        
+#### MAIN                                                                                       
 ####                                                                                            
 if __name__ == "__main__":
     initialize()
