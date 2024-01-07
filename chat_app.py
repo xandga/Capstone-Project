@@ -38,7 +38,7 @@ def initialize() -> None:
 
     with st.sidebar:
         st.markdown(
-            f"ChatBot in use: <font color='green'>{st.session_state.chatbot.__str__()}</font>", unsafe_allow_html=True
+            f"<font color='FEFEFE'>{st.session_state.chatbot.__str__()}</font>", unsafe_allow_html=True
         )
 
 #                                                                                          

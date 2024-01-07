@@ -9,7 +9,7 @@ import sqlite3
 # Connect to SQLite database (creates one if doesn't exist)
 conn = sqlite3.connect('Data/users_data.db')
 cursor = conn.cursor()
-
+"""
 # Create a table for user profiles if not exists
 cursor.execute('''
     CREATE TABLE IF NOT EXISTS Users(
@@ -26,17 +26,17 @@ cursor.execute('''
         reading_freq TEXT
     )
 ''')
-
+"""
 # Function to insert user profile into the database
-def insert_user_profile(username, age, gender, fav_entertainment, least_fav_entertainment, likes, dislikes, movie_watching_freq, show_watching_freq, reading_freq):
+def insert_user_profile(username, age, gender, fav_entertainment, least_fav_entertainment, likes, dislikes, movie_watching_freq, show_watching_freq, reading_freq, CritiPersonality):
     try:
         conn = sqlite3.connect('Data/users_data.db')
         cursor = conn.cursor()
 
         cursor.execute('''
-            INSERT INTO Users (username, age, gender, fav_entertainment, least_fav_entertainment, likes, dislikes, movie_watching_freq, show_watching_freq, reading_freq)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (username, age, gender, fav_entertainment, least_fav_entertainment, likes, dislikes, movie_watching_freq, show_watching_freq, reading_freq))
+            INSERT INTO Users (username, age, gender, fav_entertainment, least_fav_entertainment, likes, dislikes, movie_watching_freq, show_watching_freq, reading_freq, CritiPersonality)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (username, age, gender, fav_entertainment, least_fav_entertainment, likes, dislikes, movie_watching_freq, show_watching_freq, reading_freq, CritiPersonality))
         
         conn.commit()
         conn.close()  # Close the connection after committing changes
@@ -62,9 +62,9 @@ from sklearn.feature_extraction.text import CountVectorizer
 
 from PyPDF2 import PdfReader
 #from langchain.llms import OpenAI
-from langchain.embeddings.openai import OpenAIEmbeddings
+import langchain_openai
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.vectorstores import FAISS
+from langchain_community.vectorstores import FAISS
 from langchain.chains.question_answering import load_qa_chain
 from langchain import llms
 
@@ -92,13 +92,13 @@ for page in pdf.pages:
         pdf_text += text
 
 # Define the number of words per chunk and the overlap
-words_per_chunk = 500  # Change this value according to your preference
-overlap = 100  # Change this value for the desired overlap
+words_per_chunk = 500  
+overlap = 100  
 
 # Split text into chunks based on the number of words per chunk with overlap
 final_data = split_text_by_words_with_overlap(pdf_text, words_per_chunk, overlap)
 
-embeddings = OpenAIEmbeddings()
+embeddings = langchain_openai.OpenAIEmbeddings()
 document_searcher = FAISS.from_texts(final_data, embeddings)
 
 #######################################################################################################
@@ -113,7 +113,7 @@ with open(path, 'rb') as file:
 
 
 from sklearn.preprocessing import MinMaxScaler ## we should use the minmaxscale since mostly are binary
-# Scaling all features excluding 'age'
+# Scaling the feature 'age', since the model expects it
 feat_scaler = MinMaxScaler()
 data_scaled = feat_scaler.fit_transform(classifier_data[['age']])  #it can be done like this because in this case, what matters is the range of the age, and that did not vary between the train and validation data used in the model
 
@@ -121,23 +121,59 @@ def apply_preproc_steps(data):
     # Extracting age and gender from the input data
     user_age = int(data[1])  # Extracting age from the input
     user_age = feat_scaler.transform([[user_age]])[0][0]
-    
+    column_names = ['username','age','gender','fav_entertainment','least_fav_entertainment','likes', 'dislikes', 
+                    'movie_watching_freq', 'show_watching_freq', 'reading_freq']
+
+    # Create a DataFrame from the list with the specified column names
+    data = pd.DataFrame([data], columns=column_names)
     # Mapping the user's preferences to the specific columns expected by the model
-    pref_columns = [
-        'dislikes_Documentary',
-        'dislikes_Comedy',
-        'fav_Books',
-        'dislikes_Mystery',
-        'likes_Mystery',
-        'fav_Tv-shows',
-        'likes_Thriller',
-        'likes_Biography',
-        'dislikes_Animation',
-        'dislikes_Thriller',
-        'likes_Documentary',
-        'dislikes_Drama'
-    ]
+    pref_columns = ['dislikes_Comedy',
+                    'fav_Tv-shows',
+                    'dislikes_Thriller',
+                    'dislikes_Animation',
+                    'fav_Books',
+                    'dislikes_Drama',
+                    'likes_Biography',
+                    'likes_Documentary',
+                    'likes_Mystery',
+                    'dislikes_Mystery',
+                    'likes_Thriller',
+                    'dislikes_Documentary']
+ 
+    # Preprocess the columns to standardize the combinations
+    # Preprocess the columns to standardize the combinations
+    data['fav_entertainment'] = data['fav_entertainment'].apply(lambda x: ', '.join(sorted(x.split(', '))))
+    data['least_fav_entertainment'] = data['least_fav_entertainment'].apply(lambda x: ', '.join(sorted(x.split(', '))))
+
+    # One-hot encode 'fav_entertainment' column
+    fav_encoded = data['fav_entertainment'].str.get_dummies(', ').add_prefix('fav_')
+
+    # One-hot encode 'least_fav_entertainment' column
+    least_fav_encoded = data['least_fav_entertainment'].str.get_dummies(', ').add_prefix('least_fav_')
+
+    # Concatenate the new one-hot encoded columns with the original DataFrame
+    data = pd.concat([data, fav_encoded, least_fav_encoded], axis=1)
+
+    # Drop the original columns if needed
+    data.drop(['fav_entertainment', 'least_fav_entertainment'], axis=1, inplace=True)
+
     
+    data['likes'] = data['likes'].apply(lambda x: ', '.join(sorted(x.split(', '))))
+    data['dislikes'] = data['dislikes'].apply(lambda x: ', '.join(sorted(x.split(', '))))
+
+    # One-hot encode 'likes' column
+    likes_encoded = data['likes'].str.get_dummies(', ').add_prefix('likes_')
+
+    # One-hot encode 'dislikes' column
+    dislikes_encoded = data['dislikes'].str.get_dummies(', ').add_prefix('dislikes_')
+
+    # Concatenate the new one-hot encoded columns with the original DataFrame
+    data = pd.concat([data, likes_encoded, dislikes_encoded], axis=1)
+
+    # Drop the original columns if needed
+    #users_encoded.drop(['likes', 'dislikes'], axis=1, inplace=True)
+
+
     # Create a dictionary to track user preferences mapped to model columns
     user_prefs = {col: 0 for col in pref_columns}
     
@@ -152,28 +188,113 @@ def apply_preproc_steps(data):
     
     return encoded_data
 
-'''
-remove username
-minmax da age
-['fav_Tv-shows',
- 'dislikes_Adventure',
- 'dislikes_Horror',
- 'fav_Books',
- 'dislikes_Mystery',
- 'dislikes_Comedy',
- 'dislikes_Action',
- 'gender',
- 'dislikes_Documentary',
- 'dislikes_Drama',
- 'dislikes_Sci-Fi',
- 'dislikes_Animation',
- 'dislikes_Thriller']
- '''
+
 #######################################################################################################
 ####
 #### ChatBot classes ####
 ####
+def extract_user_details(response):
+    user_info = {
+        "username": "",
+        "age": "",
+        "gender": "",
+        "fav_entertainment": "",
+        "least_fav_entertainment": "",
+        "likes": "",
+        "dislikes": "",
+        "movie_watching_freq":"",
+        "show_watching_freq":"",
+        "reading_freq":""
+    }
 
+    try:
+        # Define keywords and their corresponding indices
+        details_mapping = {
+            "username": "Username:",
+            "age": "Age:",
+            "gender": "Gender:",
+            "fav_entertainment": "Preferred entertainment method:",
+            "least_fav_entertainment": "Least favorite entertainment method:",
+            "likes": "Likes:",
+            "dislikes": "Dislikes:",
+            "movie_watching_freq": "Watching Frequency:" ,
+            "show_watching_freq": "Watching Frequency:",
+            "reading_freq": "Reading Frequency:"
+        }
+
+        # Extract each user detail based on keywords
+        for key, keyword in details_mapping.items():
+            if keyword in response:
+                detail_start = response.find(keyword) + len(keyword)
+                detail_end = response.find("\n", detail_start)
+                user_info[key] = response[detail_start:detail_end].strip()
+
+    except Exception as e:
+        print(f"Error extracting user details: {e}")
+
+    return tuple(user_info.values())
+    
+def extract_user_details_from_database(username):
+    try:
+        conn = sqlite3.connect('Data/users_data.db')
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT username, age, gender,fav_entertainment, least_fav_entertainment, likes, dislikes, movie_watching_freq, show_watching_freq, reading_freq, CritiPersonality
+            FROM Users
+            WHERE username=?
+        ''', (username,))
+        user_data = cursor.fetchone()
+        conn.close()
+
+        return user_data  # Returns a tuple with the user variables in order
+
+    except sqlite3.Error as e:
+        print(f"Error fetching user data from the database: {e}")
+        return None
+
+
+def extract_username_from_response(sentence):
+    pattern = r"Username: ?([\w]+)?"
+    match = re.search(pattern, sentence)
+    if match:
+        return match.group(1)
+    else:
+        return None
+    
+def extract_movie_titles(text):
+    pattern = r'^- "(.*?)":'  # Adjusted pattern to match movie/tv show titles in the specified format
+    movie_titles = re.findall(pattern, text, re.MULTILINE)
+    return movie_titles
+
+def extract_book_titles(text):
+    pattern = r'"(.*?)" by'  # Updated pattern to capture book titles only
+    book_titles = re.findall(pattern, text)
+    return book_titles
+
+    
+def get_rating(data, data_column, title):
+    # Convert the titles to lowercase for better matching
+    data_column = data_column.str.lower()
+    title = title.lower()
+
+    # Vectorize the movie titles
+    vectorizer = CountVectorizer().fit(data_column)
+    data_vector = vectorizer.transform([title])
+
+    # Compute cosine similarity between the input title and all titles in the dataset
+    cosine_similarities = cosine_similarity(data_vector, vectorizer.transform(data_column))
+
+    # Find the maximum similarity score
+    max_similarity = cosine_similarities.max()
+
+    # Compare the maximum similarity score with the threshold
+    if max_similarity > 0.6:
+        # Get the index of the content with the maximum similarity score
+        index = cosine_similarities.argmax()
+        # Get the corresponding rating
+        return data.iloc[index]['CritiScore']
+    else:
+        return "Not Available"
 #######################################################################################################
 #                                                                                            
 # OpenAI API                                                                                 
@@ -227,110 +348,7 @@ class CritiBot:
             system_behavior=system_behavior
         )
         
-    def extract_user_details(self, response):
-        user_info = {
-            "username": "",
-            "age": "",
-            "gender": "",
-            "fav_entertainment": "",
-            "least_fav_entertainment": "",
-            "likes": "",
-            "dislikes": "",
-            "movie_watching_freq":"",
-            "show_watching_freq":"",
-            "reading_freq":""
-        }
-
-        try:
-            # Define keywords and their corresponding indices
-            details_mapping = {
-                "username": "Username:",
-                "age": "Age:",
-                "gender": "Gender:",
-                "fav_entertainment": "Preferred entertainment method:",
-                "least_fav_entertainment": "Least favorite entertainment method:",
-                "likes": "Likes:",
-                "dislikes": "Dislikes:",
-                "movie_watching_freq": "Watching Frequency:" ,
-                "show_watching_freq": "Watching Frequency:",
-                "reading_freq": "Reading Frequency:"
-            }
-
-            # Extract each user detail based on keywords
-            for key, keyword in details_mapping.items():
-                if keyword in response:
-                    detail_start = response.find(keyword) + len(keyword)
-                    detail_end = response.find("\n", detail_start)
-                    user_info[key] = response[detail_start:detail_end].strip()
-
-        except Exception as e:
-            print(f"Error extracting user details: {e}")
-
-        return tuple(user_info.values())
-    
-    def extract_user_details_from_database(self, username):
-        try:
-            conn = sqlite3.connect('Data/users_data.db')
-            cursor = conn.cursor()
-            cursor.execute('''
-                SELECT username, age, gender,fav_entertainment, least_fav_entertainment, likes, dislikes, movie_watching_freq, show_watching_freq, reading_freq
-                FROM Users
-                WHERE username=?
-            ''', (username,))
-            user_data = cursor.fetchone()
-            conn.close()
-
-            return user_data  # Returns a tuple with the user variables in order
-
-        except sqlite3.Error as e:
-            print(f"Error fetching user data from the database: {e}")
-            return None
-    
-    
-    def extract_username_from_response(self, sentence):
-        pattern = r"Username: ?([\w]+)?"
-        match = re.search(pattern, sentence)
-        if match:
-            return match.group(1)
-        else:
-            return None
-        
-    def extract_movie_titles(self, text):
-        pattern = r'^- "(.*?)":'  # Adjusted pattern to match movie/tv show titles in the specified format
-        movie_titles = re.findall(pattern, text, re.MULTILINE)
-        return movie_titles
-    
-    def extract_book_titles(text):
-        pattern = r'"(.*?)" by'  # Updated pattern to capture book titles only
-        book_titles = re.findall(pattern, text)
-        return book_titles
-
-        
-    def get_rating(self, data, data_column, title):
-        # Convert the titles to lowercase for better matching
-        data_column = data_column.str.lower()
-        title = title.lower()
-
-        # Vectorize the movie titles
-        vectorizer = CountVectorizer().fit(data_column)
-        data_vector = vectorizer.transform([title])
-
-        # Compute cosine similarity between the input title and all titles in the dataset
-        cosine_similarities = cosine_similarity(data_vector, vectorizer.transform(data_column))
-
-        # Find the maximum similarity score
-        max_similarity = cosine_similarities.max()
-
-        # Compare the maximum similarity score with the threshold
-        if max_similarity > 0.6:
-            # Get the index of the content with the maximum similarity score
-            index = cosine_similarities.argmax()
-            # Get the corresponding rating
-            return data.iloc[index]['CritiScore']
-        else:
-            return "Not Available"
-               
-
+                  
     def generate_response(self, message: str):
         response = self.engine.get_completion(message)
 
@@ -362,83 +380,73 @@ class CritiBot:
         ##################################################################
         if NEW_USER_ON:
 
-            user_details = self.extract_user_details(response)  #this returns a tuple
+            user_details = extract_user_details(response)  #this returns a tuple
             if user_details:
-                insert_user_profile(user_details[0], user_details[1], user_details[2], user_details[3], user_details[4], user_details[5], user_details[6], user_details[7], user_details[8], user_details[9])
 
-
-                #INSERT CLASSIFICATION PART HERE
                 print(response)
 
-                
-
+                #Classifying the type of user
                 data_for_model = list(user_details)
 
-                #data_for_model = self.engine.get_completion(template, temperature=1)
-                #observation_to_predict = eval(data_for_model)
                 print(data_for_model)
                 observation_to_predict = apply_preproc_steps(data_for_model)
 
-
                 prediction = classifier_model.predict([observation_to_predict])
-                user_data_message = f"This is your CritiPersonality: {prediction[0]}"
+                print(prediction)
 
-                '''
-                print(response)
-                docs =  document_searcher.similarity_search(response)
-                chain = load_qa_chain(llms.OpenAI(), chain_type="stuff")
-                user_data_message = chain.run(input_documents=docs, question=response)
                 old_user_messages = self.engine.messages.copy()  # Make a copy of current messages
+                user_data_message = f"This is your CritiPersonality: {prediction[0]}"
                 self.engine.messages = old_user_messages + [{"role": "assistant", "content": user_data_message}]
-                '''
-
-
+                
                 NEW_USER_ON = False
+
+                insert_user_profile(user_details[0], user_details[1], user_details[2], user_details[3], user_details[4], user_details[5], user_details[6], user_details[7], user_details[8], user_details[9], prediction[0])
 
                 return user_data_message
             
         #################################################################
-        if OLD_USER_ON:
+        """if OLD_USER_ON:
             print("OLD_USER_ON")
-            old_username = self.extract_username_from_response(response)  # Extract old username from response
+            old_username = extract_username_from_response(response)  # Extract old username from response
 
-            old_user_data = self.extract_user_details_from_database(old_username)
+            old_user_data = extract_user_details_from_database(old_username)
             print(old_username)
             old_user_messages = self.engine.messages.copy()  # Make a copy of current messages
             user_data_message = f"This is your user data: {old_user_data}"
             self.engine.messages = old_user_messages + [{"role": "assistant", "content": user_data_message}]
 
-            OLD_USER_ON = False
+            OLD_USER_ON = False 
 
-        #     return user_data_message
-        # if OLD_USER_ON:
-        #     print("OLD_USER_ON")
-        #     old_username = self.extract_username_from_response(response)  # Extract old username from response
+            return user_data_message"""
+            
+        if OLD_USER_ON:
+            print("OLD_USER_ON")
+            old_username = extract_username_from_response(response)  # Extract old username from response
 
-        #     print(f"Old Username extracted: {old_username}")  # Check if the username is correctly extracted
+            print(f"Old Username extracted: {old_username}")  # Check if the username is correctly extracted
 
-        #     old_user_data = self.extract_user_details_from_database(old_username)
-        #     print(f"Old User Data: {old_user_data}")  # Check if old user data is retrieved from the database
+            old_user_data = extract_user_details_from_database(old_username)
+            print(f"Old User Data: {old_user_data}")  # Check if old user data is retrieved from the database
 
-        #     if old_user_data:
-        #         old_user_messages = self.engine.messages.copy()  # Make a copy of current messages
-        #         user_data_message = f"This is your user data: {old_user_data}"
-        #         self.engine.messages = old_user_messages + [{"role": "assistant", "content": user_data_message}]
+            if old_user_data:
+                old_user_messages = self.engine.messages.copy()  # Make a copy of current messages
+                user_data_message = f"This is your user data: {old_user_data}"
+                self.engine.messages = old_user_messages + [{"role": "assistant", "content": user_data_message}]
 
-        #         OLD_USER_ON = False
-        #         return user_data_message
-        #     else:
-        #         print("Old User Data not found in the database.")
-        #         return "Your data was not found. Please create a new account or try again."
+                OLD_USER_ON = False
+                return user_data_message
+            else:
+                print("Old User Data not found in the database.")
+                return "Your data was not found. Please create a new account or try again."
 
         
         ##################################################################
         if MOVIES_ON:
-            titles = self.extract_movie_titles(response)
+            titles = extract_movie_titles(response)
             scores = []
 
             for title in titles:
-                score = self.get_rating(movies, movies["title"], title)
+                score = get_rating(movies, movies["title"], title)
                 scores.append(f"{title}: {score}\n\n")  # Append each movie title and score with an extra newline for paragraph spacing
 
             # Construct a message with movie titles and scores
@@ -454,11 +462,11 @@ class CritiBot:
         
         ##################################################################
         if SHOWS_ON:
-            titles = self.extract_movie_titles(response)
+            titles = extract_movie_titles(response)
             scores = []
             
             for title in titles:
-                score = self.get_rating(shows, shows["Series_title"],title)
+                score = get_rating(shows, shows["Series_title"],title)
                 scores.append(f"{title}: {score}\n\n")  
 
             scores_message = "\n".join(scores)  # Join all titles and scores with paragraph spaces
@@ -473,11 +481,11 @@ class CritiBot:
 
         ##################################################################
         if BOOKS_ON:
-            titles = self.extract_book_titles(response)
+            titles = extract_book_titles(response)
             scores = []
 
             for title in titles:
-                score = self.get_rating(books, books["title"], title)
+                score = get_rating(books, books["title"], title)
                 scores.append(f"{title}: {score}\n\n")  
 
             scores_message = "\n".join(scores)  # Join all titles and scores with paragraph spaces
