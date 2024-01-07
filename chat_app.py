@@ -52,10 +52,9 @@ def display_history_messages():
             st.markdown(message["content"])
 
 
-# 
+####
 # Display User Message                                                                       
-#                                                                                            
-
+####                                                                                        
 def display_user_msg(message: str):
     """
     Display user message in chat message container
@@ -64,10 +63,9 @@ def display_user_msg(message: str):
         st.markdown(message)
 
 
-#                                                                                            
+####                                                                                            
 # Display User Message                                                                       
-#                                                                                            
-
+####                                                                                            
 def display_assistant_msg(message: str, animated=True):
     """
     Display assistant message
@@ -92,10 +90,9 @@ def display_assistant_msg(message: str, animated=True):
             st.markdown(message)
 
 
-#                                                                                           
+####                                                                                           
 # MAIN                                                                                       
-#                                                                                            
-
+####                                                                                            
 if __name__ == "__main__":
     initialize()
 

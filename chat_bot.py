@@ -1,4 +1,8 @@
-###############################################################################################
+import random
+from openai import OpenAI
+import re
+from util import local_settings
+#######################################################################################################
 """ Creating User Database"""
 import sqlite3
 
@@ -39,17 +43,138 @@ def insert_user_profile(username, age, gender, fav_entertainment, least_fav_ente
         print("User profile inserted successfully.")
     except sqlite3.Error as e:
         print(f"Error inserting user profile: {e}")
-###############################################################################################
 
-"""
-ChatBot classes
-"""
+                                                          
+#######################################################################################################    
+#### LOADING THE DATASETS ####
+                  
+import pandas as pd
+movies = pd.read_csv("Data/Metadata/movies.csv")
+shows = pd. read_csv("Data/Metadata/tvshows.csv")
+books = pd.read_csv("Data/Metadata/books.csv")
 
-import random
-from openai import OpenAI
-import re
-from util import local_settings
 
+from sklearn.metrics.pairwise import cosine_similarity
+import pandas as pd
+from sklearn.feature_extraction.text import CountVectorizer
+#######################################################################################################
+#### PDF RELATED ####
+
+from PyPDF2 import PdfReader
+#from langchain.llms import OpenAI
+from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.vectorstores import FAISS
+from langchain.chains.question_answering import load_qa_chain
+from langchain import llms
+
+import nltk
+from nltk.tokenize import word_tokenize
+nltk.download('punkt')
+
+# Function to split text into chunks based on the number of words per chunk with overlap
+def split_text_by_words_with_overlap(text, words_per_chunk, overlap):
+    words = word_tokenize(text)
+    chunks = []
+    start = 0
+    while start < len(words):
+        chunk = " ".join(words[start:start + words_per_chunk])
+        chunks.append(chunk)
+        start += words_per_chunk - overlap  # Adding overlap
+    return chunks
+
+pdf = PdfReader("About CritiVerse.pdf")
+pdf_text = ""
+
+for page in pdf.pages:
+    text = page.extract_text()
+    if text:
+        pdf_text += text
+
+# Define the number of words per chunk and the overlap
+words_per_chunk = 500  # Change this value according to your preference
+overlap = 100  # Change this value for the desired overlap
+
+# Split text into chunks based on the number of words per chunk with overlap
+final_data = split_text_by_words_with_overlap(pdf_text, words_per_chunk, overlap)
+
+embeddings = OpenAIEmbeddings()
+document_searcher = FAISS.from_texts(final_data, embeddings)
+
+#######################################################################################################
+classifier_data = pd.read_csv('Data/classification_data.csv')
+import pickle
+
+path = "classification_model.pkl"
+
+with open(path, 'rb') as file:
+    classifier_model = pickle.load(file)
+
+
+
+from sklearn.preprocessing import MinMaxScaler ## we should use the minmaxscale since mostly are binary
+# Scaling all features excluding 'age'
+feat_scaler = MinMaxScaler()
+data_scaled = feat_scaler.fit_transform(classifier_data[['age']])  #it can be done like this because in this case, what matters is the range of the age, and that did not vary between the train and validation data used in the model
+
+def apply_preproc_steps(data):
+    # Extracting age and gender from the input data
+    user_age = int(data[1])  # Extracting age from the input
+    user_age = feat_scaler.transform([[user_age]])[0][0]
+    
+    # Mapping the user's preferences to the specific columns expected by the model
+    pref_columns = [
+        'dislikes_Documentary',
+        'dislikes_Comedy',
+        'fav_Books',
+        'dislikes_Mystery',
+        'likes_Mystery',
+        'fav_Tv-shows',
+        'likes_Thriller',
+        'likes_Biography',
+        'dislikes_Animation',
+        'dislikes_Thriller',
+        'likes_Documentary',
+        'dislikes_Drama'
+    ]
+    
+    # Create a dictionary to track user preferences mapped to model columns
+    user_prefs = {col: 0 for col in pref_columns}
+    
+    # Assuming user's preferences start from the 4th element in the data list
+    for pref in data[3:]:
+        if pref in user_prefs:
+            user_prefs[pref] = 1
+    
+    
+    # Constructing the encoded data array in the specific order
+    encoded_data = list(user_prefs.values()) + [user_age]
+    
+    return encoded_data
+
+'''
+remove username
+minmax da age
+['fav_Tv-shows',
+ 'dislikes_Adventure',
+ 'dislikes_Horror',
+ 'fav_Books',
+ 'dislikes_Mystery',
+ 'dislikes_Comedy',
+ 'dislikes_Action',
+ 'gender',
+ 'dislikes_Documentary',
+ 'dislikes_Drama',
+ 'dislikes_Sci-Fi',
+ 'dislikes_Animation',
+ 'dislikes_Thriller']
+ '''
+#######################################################################################################
+####
+#### ChatBot classes ####
+####
+
+#######################################################################################################
 #                                                                                            
 # OpenAI API                                                                                 
 #                                                                                             
@@ -85,65 +210,10 @@ class GPT_Helper:
         )
 
         return completion.choices[0].message.content
-
-
+#######################################################################################################
 #                                                                                     
 # CritiBot                                                                            
-#                                                      
-                                   
-import pandas as pd
-movies = pd.read_csv("Data/Metadata/movies.csv")
-shows = pd. read_csv("Data/Metadata/tvshows.csv")
-books = pd.read_csv("Data/Metadata/books.csv")
-
-
-from sklearn.metrics.pairwise import cosine_similarity
-import pandas as pd
-from sklearn.feature_extraction.text import CountVectorizer
-
-from PyPDF2 import PdfReader
-#from langchain.llms import OpenAI
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.text_splitter import CharacterTextSplitter
-from langchain.vectorstores import FAISS
-from langchain.chains.question_answering import load_qa_chain
-
-import nltk
-from nltk.tokenize import word_tokenize
-nltk.download('punkt')
-
-# Function to split text into chunks based on the number of words per chunk with overlap
-def split_text_by_words_with_overlap(text, words_per_chunk, overlap):
-    words = word_tokenize(text)
-    chunks = []
-    start = 0
-    while start < len(words):
-        chunk = " ".join(words[start:start + words_per_chunk])
-        chunks.append(chunk)
-        start += words_per_chunk - overlap  # Adding overlap
-    return chunks
-
-pdf = PdfReader("About CritiVerse.pdf")
-pdf_text = ""
-
-for page in pdf.pages:
-    text = page.extract_text()
-    if text:
-        pdf_text += text
-
-# Define the number of words per chunk and the overlap
-words_per_chunk = 500  # Change this value according to your preference
-overlap = 100  # Change this value for the desired overlap
-
-# Split text into chunks based on the number of words per chunk with overlap
-final_data = split_text_by_words_with_overlap(pdf_text, words_per_chunk, overlap)
-
-embeddings = OpenAIEmbeddings()
-document_searcher = FAISS.from_texts(final_data, embeddings)
-
-from langchain import llms
-
-
+#    
 class CritiBot:
     """
     Generate a response by using LLMs.
@@ -292,16 +362,40 @@ class CritiBot:
         ##################################################################
         if NEW_USER_ON:
 
-            user_details = self.extract_user_details(response)
+            user_details = self.extract_user_details(response)  #this returns a tuple
             if user_details:
                 insert_user_profile(user_details[0], user_details[1], user_details[2], user_details[3], user_details[4], user_details[5], user_details[6], user_details[7], user_details[8], user_details[9])
 
 
                 #INSERT CLASSIFICATION PART HERE
+                print(response)
+
+                
+
+                data_for_model = list(user_details)
+
+                #data_for_model = self.engine.get_completion(template, temperature=1)
+                #observation_to_predict = eval(data_for_model)
+                print(data_for_model)
+                observation_to_predict = apply_preproc_steps(data_for_model)
+
+
+                prediction = classifier_model.predict([observation_to_predict])
+                user_data_message = f"This is your CritiPersonality: {prediction[0]}"
+
+                '''
+                print(response)
+                docs =  document_searcher.similarity_search(response)
+                chain = load_qa_chain(llms.OpenAI(), chain_type="stuff")
+                user_data_message = chain.run(input_documents=docs, question=response)
+                old_user_messages = self.engine.messages.copy()  # Make a copy of current messages
+                self.engine.messages = old_user_messages + [{"role": "assistant", "content": user_data_message}]
+                '''
+
 
                 NEW_USER_ON = False
 
-                return "User profile inserted successfully."
+                return user_data_message
             
         #################################################################
         if OLD_USER_ON:
@@ -397,8 +491,8 @@ class CritiBot:
             return user_data_message
         
         if PDF_READER:
+            print('PDF_READER')
 
-            print(response)
             docs =  document_searcher.similarity_search(response)
 
             chain = load_qa_chain(llms.OpenAI(), chain_type="stuff")
